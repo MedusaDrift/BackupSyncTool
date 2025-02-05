@@ -9,33 +9,44 @@ class BackupSyncApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Backup Sync Utility")
-        self.root.geometry("500x300")
+        self.root.geometry("600x250")
 
-        # Primary Drive Selection
-        self.primary_label = tk.Label(root, text="Select Primary Drive (Source):", font=("Arial", 12))
-        self.primary_label.pack(pady=5)
+        # Main Frame for Layout
+        main_frame = tk.Frame(root)
+        main_frame.pack(pady=10)
 
+        # === Primary Drive (Left Side) ===
+        primary_frame = tk.Frame(main_frame)
+        primary_frame.grid(row=0, column=0, padx=10)
+
+        tk.Label(primary_frame, text="Primary Drive (Source):", font=("Arial", 12)).pack()
         self.primary_path_var = tk.StringVar()
-        self.primary_entry = tk.Entry(root, textvariable=self.primary_path_var, width=50, state="readonly")
+        self.primary_entry = tk.Entry(primary_frame, textvariable=self.primary_path_var, width=30, state="readonly")
         self.primary_entry.pack(pady=5)
 
-        self.primary_btn = tk.Button(root, text="Browse", command=self.select_primary)
-        self.primary_btn.pack(pady=5)
+        tk.Button(primary_frame, text="Browse", command=self.select_primary).pack()
 
-        # Backup Drive Selection
-        self.backup_label = tk.Label(root, text="Select Backup Drive (Destination):", font=("Arial", 12))
-        self.backup_label.pack(pady=5)
+        # === Middle Separator (|) ===
+        separator = tk.Label(main_frame, text=" | ", font=("Arial", 16, "bold"))
+        separator.grid(row=0, column=1, padx=10)
 
+        # === Backup Drive (Right Side) ===
+        backup_frame = tk.Frame(main_frame)
+        backup_frame.grid(row=0, column=2, padx=10)
+
+        tk.Label(backup_frame, text="Backup Drive (Destination):", font=("Arial", 12)).pack()
         self.backup_path_var = tk.StringVar()
-        self.backup_entry = tk.Entry(root, textvariable=self.backup_path_var, width=50, state="readonly")
+        self.backup_entry = tk.Entry(backup_frame, textvariable=self.backup_path_var, width=30, state="readonly")
         self.backup_entry.pack(pady=5)
 
-        self.backup_btn = tk.Button(root, text="Browse", command=self.select_backup)
-        self.backup_btn.pack(pady=5)
+        tk.Button(backup_frame, text="Browse", command=self.select_backup).pack()
 
-        # Sync Button
-        self.sync_btn = tk.Button(root, text="Sync Now", command=self.start_sync, bg="green", fg="white")
-        self.sync_btn.pack(pady=20)
+        # === Sync Button & Status ===
+        self.sync_btn = tk.Button(root, text="Sync Now", command=self.start_sync, bg="green", fg="white", font=("Arial", 12))
+        self.sync_btn.pack(pady=10)
+
+        self.status_label = tk.Label(root, text="", font=("Arial", 10), fg="blue")
+        self.status_label.pack()
 
     def select_primary(self):
         path = filedialog.askdirectory(title="Select Primary Drive (Source)")
@@ -55,6 +66,10 @@ class BackupSyncApp:
             messagebox.showerror("Error", "Please select both Primary and Backup drives!")
             return
 
+        self.status_label.config(text="Syncing...", fg="orange")
+        self.root.update_idletasks()
+
+        # Run sync in a separate thread to avoid UI freezing
         threading.Thread(target=self.sync_files, args=(primary_path, backup_path), daemon=True).start()
 
     def sync_files(self, primary, backup):
@@ -75,8 +90,9 @@ class BackupSyncApp:
                         shutil.copy2(src_file, dst_file)
                         copied_files += 1
 
-            messagebox.showinfo("Success", f"Sync completed! {copied_files} new files copied.")
+            self.status_label.config(text=f"Sync Completed Successfully ✅ ({copied_files} new files copied)", fg="green")
         except Exception as e:
+            self.status_label.config(text="Sync Failed ❌", fg="red")
             messagebox.showerror("Error", f"Sync failed: {str(e)}")
 
 # 🚀 Launch Application
@@ -84,4 +100,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = BackupSyncApp(root)
     root.mainloop()
-
