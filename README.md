@@ -26,7 +26,7 @@
 
 ---
 
-## 📸 **Screenshot** *(Optional: Add an image of your UI here)*  
+## 📸 **Screenshot** *(TBA)*  
 ![Backup Sync Utility Screenshot](screenshot.png)  
 
 ---
